@@ -8,31 +8,66 @@ const monthNames = ["january", "february", "march", "april", "may", "june",
 ];
 
 async function scrapeFloridaMan(url){
-    const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.goto(url);
-  let [el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/div[1]/h2');
-  let txt = await el.getProperty('textContent');
+    let [el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/div[1]/h2');
+    if(el != null){
+	//Layout 1
+	let txt = await el.getProperty('textContent');
 
-  let rawTxt = await txt.jsonValue();
+	let rawTxt = await txt.jsonValue();
 
-  //await page.goto(rawTxt);
+	console.log(rawTxt);
 
-  //let title = await page.title();
+	[el] = await page.$x('//*[@class="wp-block-image"]/a/img');///html/body/div[1]/main/div/div/div[1]/article/div/header/div[2]/a/img');
+	let img = await el.getProperty('src');
+	let rawImg = await img.jsonValue();
+	var viewSource = await page.goto(rawImg);
+	fs.writeFile("./florida.jpg", await viewSource.buffer(),
+		     function(err) {
+			 if(err) { return console.log(err); }
+			 console.log("The file was saved!"); });
 
-    console.log(rawTxt);
+	return rawTxt;
+    }
+    else{
+	//Layout 2
+	[el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/div[1]/p[2]');
+	if(el != null){
+	    let txt = await el.getProperty('textContent');
 
-    [el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/header/div[2]/a/img');
-    let img = await el.getProperty('src');
-    let rawImg = await img.jsonValue();
-    var viewSource = await page.goto(rawImg);
-    fs.writeFile("./florida.jpg", await viewSource.buffer(),
-		 function(err) {
-		     if(err) { return console.log(err); }
-		     console.log("The file was saved!"); });
+	    let rawTxt = await txt.jsonValue();
+	    
+	    [el] = await page.$x('//*[@class="wp-block-image"]/img');///html/body/div[1]/main/div/div/div[1]/article/div/div[1]/figure/img');
+	    let img = await el.getProperty('src');
+	    let rawImg = await img.jsonValue();
+	    var viewSource = await page.goto(rawImg);
+	    fs.writeFile("./florida.jpg", await viewSource.buffer(),
+			 function(err) {
+			     if(err) { return console.log(err); }
+			     console.log("The file was saved!"); });
+	    return rawTxt;
+	}
+	else{
+	    //Layout 3
+	    [el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/div[1]/p[2]');
+	    let txt = await el.getProperty('textContent');
 
-    //console.log(rawImg);
-    return rawTxt;
+	    let rawTxt = await txt.jsonValue();
+	    
+	    [el] = await page.$x('//*[@class="wp-block-image"]/img');///html/body/div[1]/main/div/div/div[1]/article/div/header/div[2]/a/img');	                          
+	    let img = await el.getProperty('src');
+	    let rawImg = await img.jsonValue();
+	    var viewSource = await page.goto(rawImg);
+	    fs.writeFile("./florida.jpg", await viewSource.buffer(),
+			 function(err) {
+			     if(err) { return console.log(err); }
+			     console.log("The file was saved!"); });
+
+	    return rawTxt;
+	}
+    }
 
 }
 
@@ -82,7 +117,7 @@ bot.command('whosabitch', (message) => {
 bot.command('random', async message =>{
 
   let random = randomDate(new Date(2012, 0, 1), new Date());
-  let dd = String(random.getDate()).padStart(2, '0');
+    let dd = parseInt(String(random.getDate()).padStart(2, '0'));
   let mm = String(random.getMonth()).padStart(2, '0'); //January is 0!
 
   random = monthNames[parseInt(mm)] + '-' + dd;
