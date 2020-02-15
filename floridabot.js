@@ -25,7 +25,7 @@ async function scrapeFloridaMan(url){
     [el] = await page.$x('/html/body/div[1]/main/div/div/div[1]/article/div/header/div[2]/a/img');
     let img = await el.getProperty('src');
     let rawImg = await img.jsonValue();
-    var viewSource = await page.goto(rawImg); 
+    var viewSource = await page.goto(rawImg);
     fs.writeFile("./florida.jpg", await viewSource.buffer(),
 		 function(err) {
 		     if(err) { return console.log(err); }
@@ -36,7 +36,9 @@ async function scrapeFloridaMan(url){
 
 }
 
-
+function randomDate(start, end) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
 
 
 bot.start(async (message) => {
@@ -55,13 +57,13 @@ bot.start(async (message) => {
 });
 
 bot.command('news', async (message) => {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth()).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
+
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth()).padStart(2, '0'); //January is 0!
 
     today = monthNames[parseInt(mm)] + '-' + dd;
-
+    console.log(`recieved message from ${message.chat.id} : ${message.message.text}`);
     let news = await scrapeFloridaMan('http://thefloridamantimes.com/' + today + '/');
 
 
@@ -69,6 +71,30 @@ bot.command('news', async (message) => {
     bot.telegram.sendPhoto(message.chat.id, {source: './florida.jpg'})
 });
 
-bot.startPolling();
-    
 
+bot.command('whosabitch', (message) => {
+
+    bot.telegram.sendMessage(message.chat.id, '@Bioscotch , he\'s truly the bitchest of the bitches');
+});
+
+
+
+bot.command('random', async message =>{
+
+  let random = randomDate(new Date(2012, 0, 1), new Date());
+  let dd = String(random.getDate()).padStart(2, '0');
+  let mm = String(random.getMonth()).padStart(2, '0'); //January is 0!
+
+  random = monthNames[parseInt(mm)] + '-' + dd;
+  console.log(random);
+  let news = await scrapeFloridaMan('http://thefloridamantimes.com/' + random + '/');
+
+  bot.telegram.sendMessage(message.chat.id, news);
+  bot.telegram.sendPhoto(message.chat.id, {source: './florida.jpg'})
+
+  console.log(random);
+
+});
+
+
+bot.launch();
